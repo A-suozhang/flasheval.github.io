@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="FlashEval: Towards Fast and Accurate Evaluation of Text-to-image Diffusion Generative Models">
+  <meta name="keywords" content="Diffusion Model, Quantization, Efficent Deep Learning ">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FlashEval: Towards Fast and Accurate Evaluation of Text-to-image Diffusion Generative Models</title>
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PYVRSFMDRL"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+
+    gtag('config', 'G-PYVRSFMDRL');
+  </script>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="icon" href="./static/images/favicon.svg">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+</head>
+<body>
+<!-- 
+<nav class="navbar" role="navigation" aria-label="main navigation">
+  <div class="navbar-brand">
+    <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+    </a>
+  </div>
+  <div class="navbar-menu">
+    <div class="navbar-start" style="flex-grow: 1; justify-content: center;">
+      <a class="navbar-item" href="https://keunhong.com">
+      <span class="icon">
+          <i class="fas fa-home"></i>
+      </span>
+      </a>
+
+      <div class="navbar-item has-dropdown is-hoverable">
+        <a class="navbar-link">
+          More Research
+        </a>
+        <div class="navbar-dropdown">
+          <a class="navbar-item" href="https://hypernerf.github.io">
+            HyperNeRF
+          </a>
+          <a class="navbar-item" href="https://nerfies.github.io">
+            Nerfies
+          </a>
+          <a class="navbar-item" href="https://latentfusion.github.io">
+            LatentFusion
+          </a>
+          <a class="navbar-item" href="https://photoshape.github.io">
+            PhotoShape
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</nav> -->
+
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-2 publication-title"> <img src="./static/images/favicon.svg" style="width: 2.5em" /> FlashEval: Towards Fast and Accurate Evaluation of Text-to-image Diffusion Generative Models</h1>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">
+              <a href="https://nicsefc.ee.tsinghua.edu.cn/people/TianchenZhao">Lin Zhao</a><sup>1,2*</sup>,</span>
+            <span class="author-block">
+              <a href="https://nicsefc.ee.tsinghua.edu.cn/people/TianchenZhao">Tianchen Zhao</a><sup>1,2*</sup>,</span>
+            <span class="author-block">
+              <a href="https://www.microsoft.com/en-us/research/people/zinanlin/">Zinan Lin</a><sup>4</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://nicsefc.ee.tsinghua.edu.cn/people/XuefeiNing">Xuefei Ning</a><sup>1&dagger;&Dagger;</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://dai.sjtu.edu.cn/pepledetail.html?id=218">Guohao Dai</a><sup>25</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://www.ee.tsinghua.edu.cn/en/info/1067/1292.htm">Huazhong Yang</a><sup>25</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://nicsefc.ee.tsinghua.edu.cn/people/YuWang">Yu Wang</a><sup>1&dagger;</sup>,
+            </span>
+          </div>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block"><sup>1</sup>Tsinghua University,</span>
+            <span class="author-block"><sup>2</sup>Infinigence AI</span>
+            <span class="author-block"><sup>3</sup>University of California Santa Barbara</span>
+            <span class="author-block"><sup>4</sup>Microsoft</span>
+            <span class="author-block"><sup>5</sup>Shanghai Jiao Tong University</span>
+          </div>
+
+          <div class="is-size-6 publication-authors">
+            <span class="author-block"><sup>*</sup><b>Equal Contribution</b></span>
+            <span class="author-block"><sup>&dagger;</sup><b>Corresponding Authors</b>&Dagger;</sup><b>Project Advisor</b></span>
+          </div>
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+
+              <!-- PDF Link. -->
+              <span class="link-block">
+                <a href="https://nicsefc.ee.tsinghua.edu.cn/%2Fnics_file%2Fpdf%2F5c1aab15-3c67-4f12-a905-559189c856a6.pdf"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fas fa-file-pdf"></i>
+                  </span>
+                  <span>Paper</span>
+                </a>
+              </span>
+              <span class="link-block">
+                <a href="https://arxiv.org/abs/2403.16379"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="ai ai-arxiv"></i>
+                  </span>
+                  <span>arXiv</span>
+                </a>
+              </span>
+              <!-- Sides Link. -->
+              <!-- <span class="link-block">
+                <a href="https://nicsefc.ee.tsinghua.edu.cn/%2Fnics_file%2Fpdf%2Fa3462020-25d8-436c-993f-7aaf047cbd93.pdf"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fas fa-file-alt"></i>
+                  </span>
+                  <span>Slides</span>
+                </a>
+              </span> -->
+              <!-- Code Link. -->
+              <span class="link-block">
+                <a href="https://github.com/thu-nics/FlashEval"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-github"></i>
+                  </span>
+                  <span>Code</span>
+                  </a>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- [The Teaser Video Exmaple] -->
+<!-- <section class="hero teaser">
+  <div class="container is-max-desktop">
+    <div class="hero-body">
+      <video id="teaser" autoplay muted loop height="100%">
+        <source src="https://homes.cs.washington.edu/~kpar/nerfies/videos/teaser.mp4"
+                type="video/mp4">
+      </video>
+      <h2 class="subtitle has-text-centered">
+        <span class="dnerf">Nerfies</span> turns selfie videos from your phone into
+        free-viewpoint
+        portraits.
+      </h2>
+    </div>
+  </div>
+</section> -->
+
+<!-- 
+<section class="hero is-light is-small">
+  <div class="hero-body">
+    <div class="container">
+      <div id="results-carousel" class="carousel results-carousel">
+        <div class="item item-steve">
+          <video poster="" id="steve" autoplay controls muted loop height="100%">
+            <source src="https://homes.cs.washington.edu/~kpar/nerfies/videos/steve.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+        <div class="item item-chair-tp">
+          <video poster="" id="chair-tp" autoplay controls muted loop height="100%">
+            <source src="https://homes.cs.washington.edu/~kpar/nerfies/videos/chair-tp.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+        <div class="item item-shiba">
+          <video poster="" id="shiba" autoplay controls muted loop height="100%">
+            <source src="https://homes.cs.washington.edu/~kpar/nerfies/videos/shiba.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+        <div class="item item-fullbody">
+          <video poster="" id="fullbody" autoplay controls muted loop height="100%">
+            <source src="https://homes.cs.washington.edu/~kpar/nerfies/videos/fullbody.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+        <div class="item item-blueshirt">
+          <video poster="" id="blueshirt" autoplay controls muted loop height="100%">
+            <source src="https://homes.cs.washington.edu/~kpar/nerfies/videos/blueshirt.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+        <div class="item item-mask">
+          <video poster="" id="mask" autoplay controls muted loop height="100%">
+            <source src="https://homes.cs.washington.edu/~kpar/nerfies/videos/mask.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+        <div class="item item-coffee">
+          <video poster="" id="coffee" autoplay controls muted loop height="100%">
+            <source src="https://homes.cs.washington.edu/~kpar/nerfies/videos/coffee.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+        <div class="item item-toby">
+          <video poster="" id="toby" autoplay controls muted loop height="100%">
+            <source src="https://homes.cs.washington.edu/~kpar/nerfies/videos/toby2.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+      </div>
+    </div>
+  </div>
+</section> -->
+
+
+<section class="section">
+
+  <div class="container is-max-desktop">
+    <!--/ Video. -->
+    <!-- <div class="columns is-centered has-text-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">Video</h2>
+        <div class="publication-poster">
+          <iframe width="1080" height="720" src="https://www.youtube.com/embed/N_llpMqMJbk?si=C38fAW1gYxCQFtLc" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe> -->
+            <!-- <embed src="./static/src/poster.pdf" width="1600px" height="900px" /> -->
+        <!-- </div>
+      </div>
+    </div> 
+      <!--/ Teaser. -->
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-full-width">
+          <h2 class="title is-3">TL;DR</h2>
+          <div class="publication-teaser">
+            <p>
+              We design <b>FlashEval</b>, an efficient evaluation method for text-to-image generation models. It identifies the "representative subset" of <b>textual evaluation dataset</b>. Without sacrificing evaluation quality, it accelerates the evalution speed by <b><font color="#b3280d"> 10x</font></b>.  
+            </p>
+          </div>
+          <img src="./static/src/teaser.png"
+          class="poster" style="width:50%"
+          lt="Poster."/> 
+        </div>
+      </div>
+      <!--/ Poster. -->
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-full-width">
+          <h2 class="title is-3">Poster</h2>
+          <div class="publication-poster">
+            <img src="./static/src/flasheval_poster.jpg"
+              class="poster" style="width:100%"
+              lt="Poster."/> 
+           </div>
+        </div>
+      </div> 
+    <!-- Abstract. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            In recent years, there has been significant progress in the development of text-to-image generative models. Evaluating the quality of the generative models is one essential step in the development process. Unfortunately, the evaluation process could consume a significant amount of computational resources, making the required periodic evaluation of model performance (e.g., monitoring training progress) impractical. 
+          </p>
+          <p>
+            Therefore, we seek to improve the evaluation efficiency by <b>selecting the representative subset of the text-image dataset</b>. We systematically investigate the design choices, including the selection criteria (textural features or image-based metrics) and the selection granularity (prompt-level or set-level). We find that the insights from prior work on subset selection for <b>training data</b> do not generalize to this problem, and we propose FlashEval, an iterative search algorithm
+            tailored to <b>evaluation data</b> selection. 
+          </p>
+          <p>
+            We demonstrate the effectiveness of FlashEval on ranking diffusion models with various configurations, including architectures, quantization levels, and sampler schedules on COCO and DiffusionDB datasets. Our searched 50-item subset could achieve comparable evaluation quality to the randomly sampled 500-item subset for COCO annotations on unseen models, achieving a <b>10x evaluation speedup</b>. We release the condensed subset of these commonly used datasets to help facilitate diffusion algorithm design and evaluation, and open-source FlashEval as a tool for condensing future datasets, accessible at <a href="https://github.com/thu-nics/FlashEval">https://github.com/thu-nics/FlashEval</a>
+          </p>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Paper video. -->
+    <!-- <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Video</h2>
+        <div class="publication-video">
+          <iframe src="src.mp4"
+                  frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div> -->
+
+  </div>
+</section>
+
+
+<section class="section">
+  <!-- Motivation. -->
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">Motivation</h2>
+
+        <!-- Generalization. -->
+        <h3 class="title is-4">The Cost of Text-to-image Evaluation is Excessive</h3>
+        <div class="content has-text-justified">
+          <p>
+            When evaluating the text-to-image generative models. The common practice is to iterate through a textual dataset (e.g., COCO annotations, DiffusionDB), and calculate the metric scores for generated images to represent the model. However, these textual datasets often exhibits a large size (47K for COCO, 15K for PicScore). A complete evaluation of SD1.5 model with DDIM 50 steps on the whole COCO cost <b>60 GPU hours (RTX3090)</b>
+          </p>
+        </div>
+        <h3 class="title is-4">Applications Require Repeated Evaluation</h3>
+        <div class="content has-text-justified">
+          <p>
+            However, for both model training and algotithm design, many applications require repeated evaluation. For instance, choosing proper model and schedule, finetuning the model, or make some model design choices. In these applications, <b>the evaluation cost is the major bottleneck for development</b>. 
+          </p>
+        </div>
+        <div class="content has-text-centered">
+          <img src="./static/src/applications.png"
+          class="exp-image"
+          alt="Experimental Results Image."
+          style="width: 80%"/>
+        </div>
+
+        <br/>
+        <!--/ Generalization. -->
+      </div>
+    </div>
+  <!--/ Motivation. -->
+  </div>
+</div>
+<section class="section">
+  <!-- Motivation. -->
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">Methodology</h2>
+        We design the FlashEval search algotithm, which is specialized for the task of identifying the representative subset. Inspired by the evolutionary algorithm, we design the iterative search algorithm as follows:
+        <div class="content has-text-centered">
+          <img src="./static/src/algorithm.jpg"
+          class="exp-image"
+          alt="Experimental Results Image."
+          style="width: 100%"/>
+        </div>
+
+        <!-- Generalization. -->
+        <h3 class="title is-4">Prompt and Set-level Iterative Filtering</h3>
+        <div class="content has-text-justified">
+          <p>
+            We discover that simply choosing the prompts or subsets with highest KD, does not show satisfying generalization ability, and design an iterative filtering algorithm. 
+          </p>
+        </div>
+        <!-- <div class="content has-text-centered">
+          <img src="./static/src/bos_aware.png"
+          class="exp-image"
+          alt="Experimental Results Image."
+          style="width: 100%"/>
+        </div>
+        <br/> -->
+        <!--/ Generalization. -->
+
+        <!-- Generalization. -->
+        <h3 class="title is-4">Frequency-based Prompt Selection</h3>
+        <div class="content has-text-justified">
+          <p>
+            We discover that the prompts with standalone higher KD, when combined together, does not necessarily show higher evaluation quality. After further investigation, we discover that <b>the prompts that appear more frequently in top-performing subsets</b> show better correlation with the evaluation quality.
+          </p>
+        </div>
+        <!-- <div class="content has-text-centered">
+          <img src="./static/src/spbn.png"
+          class="exp-image"
+          alt="Experimental Results Image."
+          width="800px" height="400px"/>
+        </div> -->
+        <br/>
+        <!--/ Generalization. -->
+        <br/>
+                
+      </div>
+    </div>
+  <!--/ Motivation. -->
+  </div>
+</div>
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+        <div class="column is-full-width">
+          <h2 class="title is-3"> Experiments and Analysis:  </h2>
+          <!-- Perf. -->
+          <h3 class="title is-4"> Extensive Evaluation Settings</h3>
+          <div class="content has-text-justified">
+            <p>
+              We evaluate FlashEval on multiple datasets (COCO, DiffusionDB), multiple metrics (FID, CLIP, Aesthetic, ImageReward), and diverse model zoo (including 78 models, covering 12 model architecture and weights, and 8 different solvers). To verify the generalization ability of the searched subset, we design 3 subtasks by spliting the model zoo into 2 halves, and conduct searching on one half, and test on the other half. The tasks are: random split, across model variants, and across schedules. 
+            </p>
+          </div>
+          <div class="content has-text-centered">
+            <img src="./static/src/eval_settings.png"
+            class="exp-image"
+            style="width: 100%"/>  
+          </div>
+        <!--/ Perf. -->
+        <!-- AttnMap. -->
+        <h3 class="title is-4"> Evaluation Quality</h3>
+        <div class="content has-text-justified">
+          <p>
+            We present the evaluation quality for different settings. FlashEval searched subset demonstrate consistent superior performance compared with baseline methods. The FlashEval acquired 50-item subset achieves similar performance with 500-item random-sampled subset. 
+          </p>
+        </div>
+        <div class="content has-text-centered">
+          <img src="./static/src/exp-coco.jpg"
+          class="geo-vis"
+          alt="Experimental Results on COCO annotations."/>
+        </div>
+        <p>
+          Similar results are also witnessed on diffusionDB dataset.
+        </p>
+        <div class="content has-text-centered">
+          <img src="./static/src/exp-diffusionDB.jpg"
+          class="geo-vis"
+          alt="Experimental Results on COCO annotations."/>
+        </div>
+      </div>
+    </div>
+</section>
+
+<section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title">BibTeX</h2>
+    <pre><code>@article{zhao2024flasheval,
+      title={FlashEval: Towards Fast and Accurate Evaluation of Text-to-image Diffusion Generative Models},
+      author={Zhao, Lin and Zhao, Tianchen and Lin, Zinan and Ning, Xuefei and Dai, Guohao and Yang, Huazhong and Wang, Yu},
+      journal={arXiv preprint arXiv:2403.16379},
+      year={2024}
+    }</code></pre>
+  </div>
+
+  <!-- <div class="content has-text-centered">
+    <img src="./static/src/pr.png"
+    class="geo-vis"
+    alt="Attention map visualization."/>
+  </div> -->
+</section>
+
+
+<footer class="footer">
+  <div class="container">
+    <!-- <div class="content has-text-centered">
+      <a class="icon-link"
+         href="https://arxiv.org/abs/2307.08209">
+        <i class="fas fa-file-pdf"></i>
+      </a>
+      <a class="icon-link" href="https://github.com/A-suozhang/ada3d" class="external-link" disabled>
+        <i class="fab fa-github"></i>
+      </a>
+    </div> -->
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>
+            This website is licensed under a <a rel="license"
+                                                href="http://creativecommons.org/licenses/by-sa/4.0/">Creative
+            Commons Attribution-ShareAlike 4.0 International License</a>.
+          </p>
+          <p>
+            This means you are free to borrow the <a
+              href="https://github.com/nerfies/nerfies.github.io">source code</a> of this website,
+            we just ask that you link back to this page in the footer.
+            Please remember to remove the analytics code included in the header of the website which
+            you do not want on your website.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
